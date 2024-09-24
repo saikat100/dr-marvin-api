@@ -56,8 +56,8 @@ app.get('/get-data', async (req, res) => {
 // Route to store appointment data
 app.post('/appointment', async (req, res) => {
     try {
-        const { firstName, lastName, email, phone, reason } = req.body;
-        const result = await appointmentCollection.insertOne({ firstName, lastName, email, phone, reason });
+        const { firstName, lastName, email, phone, reason, appointmentStatus } = req.body;
+        const result = await appointmentCollection.insertOne({ firstName, lastName, email, phone, reason, appointmentStatus });
         res.status(200).json({ message: 'Appointment stored successfully', data: result });
     } catch (error) {
         res.status(500).json({ message: 'Error storing appointment', error });
@@ -74,6 +74,26 @@ app.get('/appointments', async (req, res) => {
         res.status(200).json(appointments);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving appointments', error });
+    }
+});
+
+app.get('/appointments/:phone', async (req, res, next) => {
+    try {
+        // Extract the dynamic phone number from the route parameter
+        const { phone } = req.params;
+
+        // Search for an appointment with the provided phone number
+        const appointment = await appointmentCollection.findOne({ phone });
+
+        // If no appointment is found, return a 404 status
+        if (!appointment) {
+            return res.status(404).json({ message: 'No appointment found for the given phone number' });
+        }
+
+        // Return the appointment data
+        res.status(200).json(appointment);
+    } catch (error) {
+        next(error);  // Pass any errors to the error-handling middleware
     }
 });
 
